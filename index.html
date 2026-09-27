@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Calcolo Tempi Multi-Catasta ILCAM</title>
+  
+  <!-- Configurazione PWA e Icona Home Smartphone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Multi Tempi ILCAM">
+  <meta name="theme-color" content="#0f172a">
+  
+  <link rel="apple-touch-icon" href="ilcam q.jpg">
+  <link rel="icon" type="image/jpeg" href="ilcam q.jpg">
+  
+  <style>
+    *, ::before, ::after { box-sizing: border-box; border-width: 0; border-style: solid; border-color: #e2e8f0; }
+    html { line-height: 1.5; -webkit-text-size-adjust: 100%; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; background-color: #f1f5f9; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; -webkit-tap-highlight-color: transparent; }
+    
+    header { background-color: #0f172a; color: #ffffff; border-bottom: 4px solid #dc2626; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding-top: env(safe-area-inset-top); }
+    .header-container { max-width: 80rem; margin: 0 auto; padding: 0.875rem 1rem; display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
+    .brand-container { display: flex; align-items: center; gap: 0.75rem; text-align: left; }
+    .logo-img { height: 42px; width: auto; background-color: #ffffff; padding: 2px; border-radius: 6px; object-fit: contain; }
+
+    .btn { padding: 0.625rem 1rem; border-radius: 0.5rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; transition: all 0.2s; }
+    .btn-add { background-color: #dc2626; color: #ffffff; width: 100%; margin-top: 0.5rem; }
+    .btn-add:active { background-color: #991b1b; }
+    .btn-clear { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    .btn-clear:active { background-color: #334155; }
+    .btn-remove { background-color: #fee2e2; color: #991b1b; padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.25rem; }
+    .btn-remove:hover { background-color: #fca5a5; }
+
+    main { max-width: 80rem; margin: 0 auto; padding: 0.75rem; width: 100%; flex-grow: 1; }
+    @media (min-width: 640px) { main { padding: 1.5rem 1rem; } }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+    @media (min-width: 1024px) { .grid { grid-template-columns: 4.5fr 7.5fr; gap: 1.5rem; } }
+    
+    .card { background-color: #ffffff; border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 0.875rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    @media (min-width: 640px) { .card { padding: 1.25rem; } }
+    
+    .card-dark { background: linear-gradient(to bottom right, #0f172a, #1e293b); color: #ffffff; border-bottom: 4px solid #dc2626; }
+    
+    .section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; margin-bottom: 0.5rem; display: block; }
+    .input-group { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.625rem; margin-bottom: 0.75rem; }
+
+    .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    
+    label { display: block; font-size: 0.7rem; font-weight: 600; color: #475569; margin-bottom: 0.2rem; }
+    input[type="number"], input[type="text"] { width: 100%; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 0.375rem; padding: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #0f172a; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+    input[readonly] { background-color: #f1f5f9; color: #0284c7; font-weight: 700; cursor: not-allowed; }
+    input[type="number"]:focus:not([readonly]) { outline: 2px solid #dc2626; border-color: transparent; }
+    
+    .badge { font-size: 0.7rem; background-color: rgba(220, 38, 38, 0.2); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); padding: 0.125rem 0.5rem; border-radius: 9999px; white-space: nowrap; }
+    .big-time { font-size: 2.25rem; font-weight: 900; color: #ffffff; margin: 0.25rem 0; word-break: break-word; }
+    @media (min-width: 640px) { .big-time { font-size: 2.75rem; } }
+    
+    .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
+    table { width: 100%; text-align: left; border-collapse: collapse; font-size: 0.75rem; }
+    th { padding: 0.625rem 0.5rem; background-color: #f1f5f9; color: #334155; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+    td { padding: 0.5rem 0.5rem; border-bottom: 1px solid #e2e8f0; }
+    
+    footer { background-color: #ffffff; border-top: 1px solid #e2e8f0; padding: 0.75rem; text-align: center; font-size: 0.7rem; color: #64748b; padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
+  </style>
+</head>
+<body>
+
+  <div>
+    <!-- Header -->
+    <header>
+      <div class="header-container">
+        <div class="brand-container">
+          <img src="ILCAM.jpg" alt="ILCAM" class="logo-img" onerror="this.style.display='none'">
+          <div>
+            <h1 style="font-size: 1rem; font-weight: 700; margin:0; line-height: 1.2;">Multi-Catasta Ribassati</h1>
+            <p style="font-size: 0.65rem; color: #94a3b8; margin:0;">Pianificazione Produzione</p>
+          </div>
+        </div>
+        
+        <button type="button" onclick="svuotaLista()" class="btn btn-clear">🗑️ Svuota Tutto</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main>
+      <div class="grid">
+
+        <!-- Form Inserimento -->
+        <div class="card">
+          <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+            <h2 style="font-size: 0.875rem; font-weight: 700; margin: 0;">➕ Aggiungi Nuova Catasta</h2>
+          </div>
+
+          <form id="catastaForm" onsubmit="event.preventDefault(); aggiungiCatasta();">
+            
+            <div class="input-group">
+              <span class="section-title">Dimensioni Pezzo</span>
+              <div class="input-grid">
+                <div>
+                  <label for="base">Base (mm)</label>
+                  <input type="number" id="base" value="596" min="1" step="1" inputmode="decimal" required>
+                </div>
+                <div>
+                  <label for="altezza">Altezza (mm)</label>
+                  <input type="number" id="altezza" value="796" min="1" step="1" inputmode="decimal" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="pezziCatasta" style="font-weight: 700; font-size: 0.75rem;">Pezzi in questa Catasta</label>
+              <input type="number" id="pezziCatasta" value="40" min="1" step="1" inputmode="numeric" required>
+            </div>
+
+            <div class="input-group">
+              <span class="section-title">Parametri Linea</span>
+              <div class="input-grid" style="margin-bottom: 0.5rem;">
+                <div>
+                  <label for="velocitaLinea">Velocità (m/min)</label>
+                  <input type="number" id="velocitaLinea" value="4.5" min="0.1" step="0.1" inputmode="decimal" required>
+                </div>
+                <div>
+                  <label for="passoRobot">Passo Robot (s)</label>
+                  <input type="number" id="passoRobot" value="6.0" min="0.0" step="0.5" inputmode="decimal" required>
+                </div>
+              </div>
+
+              <div>
+                <label for="lunghezzaLinea">Distanza Carico-Scarico (m)</label>
+                <input type="number" id="lunghezzaLinea" value="42.5" min="1" step="0.1" inputmode="decimal" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-add">➕ Aggiungi alla Programmazione</button>
+          </form>
+        </div>
+
+        <!-- Risultati Complessivi e Lista Cataste -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+
+          <!-- Dashboard Tempo Totale -->
+          <div class="card card-dark">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; color: #fca5a5;">⏱️ Tempo Totale Produzione</span>
+              <span class="badge" id="totale-cataste-badge">0 cataste</span>
+            </div>
+            
+            <div class="big-time" id="res-tempo-totale-complessivo">0 min 0 s</div>
+
+            <div style="border-top: 1px solid #334155; padding-top: 0.625rem; margin-top: 0.375rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; font-size: 0.7rem;">
+              <div>
+                <span style="color: #94a3b8; display: block;">Ore Totali:</span>
+                <span style="font-size: 0.85rem; font-weight: 700;" id="res-ore-totali">0h 0m</span>
+              </div>
+              <div>
+                <span style="color: #94a3b8; display: block;">Pezzi Totali:</span>
+                <span style="font-size: 0.85rem; font-weight: 700;" id="res-pezzi-totali">0 pz</span>
+              </div>
+              <div>
+                <span style="color: #94a3b8; display: block;">Produttività Media:</span>
+                <span style="font-size: 0.85rem; font-weight: 700;" id="res-produttivita-media">-- pz/h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabella Programma Cataste -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 0.625rem 0.875rem; background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+              <span>📋 Lista Cataste Programmate</span>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Formato (mm)</th>
+                    <th style="text-align: center;">Pezzi</th>
+                    <th style="text-align: center;">Vel.</th>
+                    <th style="text-align: right;">Tempo Catasta</th>
+                    <th style="text-align: center;">Azione</th>
+                  </tr>
+                </thead>
+                <tbody id="listaCatasteBody">
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 1.5rem; color: #94a3b8;">
+                      Nessuna catasta aggiunta. Compila il modulo a sinistra e clicca su "Aggiungi".
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <footer>
+   &bull; Calcolatore Multi-Catasta Levigatura Ribassati &bull; ILCAM Group
+  </footer>
+
+  <script>
+    let listaCataste = [];
+
+    function calcolaTempoCatasta(base, altezza, pezzi, vLineaMMin, tLaserDelay, lLineaM) {
+      const vLineaMMs = (vLineaMMin * 1000) / 60;
+      const lLineaMM = lLineaM * 1000;
+      const latoAvanzamento = Math.max(base, altezza);
+
+      const tSgomberoLaserS = vLineaMMs > 0 ? (latoAvanzamento / vLineaMMs) : 0;
+      const tCicloPosataS = tSgomberoLaserS + tLaserDelay;
+
+      const tSvuotamentoLineaS = vLineaMMs > 0 ? (lLineaMM / vLineaMMs) : 0;
+      const tCaricoCatastaS = pezzi > 0 ? (pezzi - 1) * tCicloPosataS : 0;
+
+      return tCaricoCatastaS + tSvuotamentoLineaS;
+    }
+
+    function aggiungiCatasta() {
+      const base = parseFloat(document.getElementById('base').value) || 0;
+      const altezza = parseFloat(document.getElementById('altezza').value) || 0;
+      const pezzi = parseInt(document.getElementById('pezziCatasta').value) || 0;
+      const vLineaMMin = parseFloat(document.getElementById('velocitaLinea').value) || 0;
+      const tLaserDelay = parseFloat(document.getElementById('passoRobot').value) || 0;
+      const lLineaM = parseFloat(document.getElementById('lunghezzaLinea').value) || 0;
+
+      const tempoSecondi = calcolaTempoCatasta(base, altezza, pezzi, vLineaMMin, tLaserDelay, lLineaM);
+
+      const nuovaCatasta = {
+        id: Date.now(),
+        base,
+        altezza,
+        pezzi,
+        vLineaMMin,
+        tLaserDelay,
+        lLineaM,
+        tempoSecondi
+      };
+
+      listaCataste.push(nuovaCatasta);
+      aggiornaInterfaccia();
+    }
+
+    function rimuoviCatasta(id) {
+      listaCataste = listaCataste.filter(c => c.id !== id);
+      aggiornaInterfaccia();
+    }
+
+    function svuotaLista() {
+      if (listaCataste.length === 0) return;
+      if (confirm("Vuoi davvero svuotare l'intera lista delle cataste?")) {
+        listaCataste = [];
+        aggiornaInterfaccia();
+      }
+    }
+
+    function aggiornaInterfaccia() {
+      const tbody = document.getElementById('listaCatasteBody');
+      tbody.innerHTML = '';
+
+      if (listaCataste.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 1.5rem; color: #94a3b8;">
+              Nessuna catasta aggiunta. Compila il modulo a sinistra e clicca su "Aggiungi".
+            </td>
+          </tr>`;
+        
+        document.getElementById('totale-cataste-badge').textContent = '0 cataste';
+        document.getElementById('res-tempo-totale-complessivo').textContent = '0 min 0 s';
+        document.getElementById('res-ore-totali').textContent = '0h 0m';
+        document.getElementById('res-pezzi-totali').textContent = '0 pz';
+        document.getElementById('res-produttivita-media').textContent = '-- pz/h';
+        return;
+      }
+
+      let tempoTotaleSecondi = 0;
+      let pezziTotali = 0;
+
+      listaCataste.forEach((catasta, index) => {
+        tempoTotaleSecondi += catasta.tempoSecondi;
+        pezziTotali += catasta.pezzi;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight: 700; color: #64748b;">${index + 1}</td>
+          <td style="font-weight: 700; color: #0f172a;">${catasta.base} × ${catasta.altezza}</td>
+          <td style="text-align: center; font-weight: 700; color: #dc2626;">${catasta.pezzi}</td>
+          <td style="text-align: center;">${catasta.vLineaMMin} m/min</td>
+          <td style="text-align: right; font-weight: 700;">${formatMinSec(catasta.tempoSecondi)}</td>
+          <td style="text-align: center;">
+            <button onclick="rimuoviCatasta(${catasta.id})" class="btn-remove" title="Rimuovi">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const oreTotaliInDecimali = tempoTotaleSecondi / 3600;
+      const produttivitaMedia = oreTotaliInDecimali > 0 ? Math.round(pezziTotali / oreTotaliInDecimali) : 0;
+
+      document.getElementById('totale-cataste-badge').textContent = `${listaCataste.length} cataste`;
+      document.getElementById('res-tempo-totale-complessivo').textContent = formatMinSec(tempoTotaleSecondi);
+      document.getElementById('res-ore-totali').textContent = formatOreMin(tempoTotaleSecondi);
+      document.getElementById('res-pezzi-totali').textContent = `${pezziTotali} pz`;
+      document.getElementById('res-produttivita-media').textContent = `${produttivitaMedia} pz/h`;
+    }
+
+    function formatMinSec(seconds) {
+      if (isNaN(seconds) || seconds <= 0) return "0 min 0 s";
+      const totalSec = Math.round(seconds);
+      const min = Math.floor(totalSec / 60);
+      const sec = totalSec % 60;
+      return `${min} min ${sec} s`;
+    }
+
+    function formatOreMin(seconds) {
+      if (isNaN(seconds) || seconds <= 0) return "0h 0m";
+      const totalMin = Math.round(seconds / 60);
+      const ore = Math.floor(totalMin / 60);
+      const min = totalMin % 60;
+      if (ore === 0) return `${min}m`;
+      return `${ore}h ${min}m`;
+    }
+  </script>
+</body>
+</html>
